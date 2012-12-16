@@ -1,0 +1,74 @@
+<!DOCTYPE HTML>
+<script>
+const app = safari.application,
+	  ext = safari.extension;
+app.addEventListener('command', performCommand, false);
+app.addEventListener('validate', validateCommand, false);
+app.addEventListener('message', handleMessage, false);
+ext.settings.addEventListener('change', settingChanged, false);
+
+function performCommand(e) {
+	if (e.command == 'redditToolbar' || e.command == 'redditContext')
+		goToComments();
+}
+
+function validateCommand(e) {
+	if(e.command == 'redditContext') {
+		if(!ext.settings.enableContext) {
+			e.target.disabled = true;
+			return;
+		}
+	}
+	if (e.command == 'redditToolbar' || e.command == 'redditContext')
+		e.target.disabled = !app.activeBrowserWindow.activeTab.url;
+}
+
+function handleMessage(msg) {
+	if(msg.name == 'keyboard') {
+		if(ext.settings.enableKeyboard) {
+			if (String.fromCharCode(msg.message) == ext.settings.shortcutKey) {
+				goToComments();
+			} 
+		}
+	}
+}
+
+function settingChanged(e) {
+	if(e.key == 'shortcutKey') {
+		var regExpr = new RegExp('^[a-zA-Z0-9]+$');
+		if (!regExpr.test(e.newValue)) {
+			ext.settings.shortcutKey = e.oldValue;
+		}
+		if (e.newValue != e.newValue.toUpperCase()) {
+			ext.settings.shortcutKey = e.newValue.toUpperCase();
+		}
+	}
+}
+
+function goToComments() {
+	var currentURL = app.activeBrowserWindow.activeTab.url;
+	var currentTitle = app.activeBrowserWindow.activeTab.title;
+	if (!currentURL) return;
+	if (ext.settings.todo == 'comments') {
+		rUrl = 'http://reddit.com/submit?url='+encodeURIComponent(currentURL)+'&title='+currentTitle;
+	} else {
+		rUrl = 'http://reddit.com/s/'+currentURL;
+	}
+	openUrl(rUrl);
+}
+
+function openUrl(rUrl) {
+	switch (ext.settings.resultsType) {
+	case 'foreground':
+	case 'background':
+		var tab = app.activeBrowserWindow.openTab(ext.settings.resultsType);
+		tab.url = rUrl;
+		break;
+	case 'new':
+		app.openBrowserWindow();
+	case 'new':
+	case 'current':
+		app.activeBrowserWindow.activeTab.url = rUrl;
+	}
+}
+</script>
