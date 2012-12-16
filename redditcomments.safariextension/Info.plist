@@ -39,7 +39,7 @@
 				<key>Identifier</key>
 				<string>redditToolbar</string>
 				<key>Image</key>
-				<string>comments.png</string>
+				<string>toolbar.png</string>
 				<key>Label</key>
 				<string>reddit</string>
 				<key>Palette Label</key>
